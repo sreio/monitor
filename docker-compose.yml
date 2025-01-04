@@ -1,0 +1,103 @@
+version: '3'
+
+services:
+  # Prometheus 服务
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus/    # 配置文件映射
+      - prometheus_data:/prometheus
+    ports:
+      - "8090:9090"  # Prometheus 默认端口
+    environment:
+      - TZ=${TZ}  # 设置时区
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      #热加载配置
+      - '--web.enable-lifecycle'
+      #api配置
+      #- '--web.enable-admin-api'
+      #历史数据最大保留时间，默认15天
+      - '--storage.tsdb.retention.time=30d'
+    restart: unless-stopped
+    networks:
+      - monitoring
+    links:
+      - alertmanager
+      - node-exporter
+
+  # Node Exporter 服务
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "8100:9100"  # Node Exporter 默认端口
+    environment:
+      - TZ=${TZ}  # 设置时区
+    restart: unless-stopped
+    networks:
+      - monitoring
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    ports:
+      - "8093:9093"  # Alertmanager Web UI 默认端口
+    volumes:
+      - ./alertmanager/:/etc/alertmanager/
+    environment:
+      - TZ=${TZ}  # 设置时区
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    networks:
+      - monitoring
+    restart: unless-stopped
+    links:
+      - prometheus-alert
+
+  prometheus-alert:
+    image: feiyu563/prometheus-alert:latest
+    container_name: prometheus-alert
+    ports:
+      - "8008:8008"
+    volumes:
+      - ./prometheusalert:/app/conf
+    environment:
+      - TZ=${TZ}  # 设置时区
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Grafana 服务
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}  # 设置Grafana的admin密码
+      - TZ=${TZ}  # 设置时区
+    ports:
+      - "8300:3000"  # Grafana 默认端口
+    volumes:
+      - grafana-data:/var/lib/grafana  # 持久化Grafana数据
+    restart: unless-stopped
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus  # Grafana依赖Prometheus
+
+networks:
+  monitoring:
+    driver: bridge
+    ipam:
+      driver: default
+
+volumes:
+  grafana-data:
+    driver: local
+  prometheus_data:
+    driver: local

@@ -1,0 +1,12 @@
+global:
+  resolve_timeout: 5m
+route:
+  group_by: ['instance']
+  group_wait: 10m  # 最初即第一次等待多久时间发送一组警报的通知
+  group_interval: 10s # 在发送新警报前的等待时间
+  repeat_interval: 10m # 发送重复警报的周期
+  receiver: 'web.hook.prometheusalert'
+receivers:
+  - name: 'web.hook.prometheusalert'
+    webhook_configs:
+      - url: 'http://prometheus-alert:8008/prometheusalert?type=wx&tpl=prometheus-wx'

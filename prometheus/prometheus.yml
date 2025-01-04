@@ -1,0 +1,39 @@
+global:
+  scrape_interval:     15s # 将搜刮间隔设置为每15秒一次。默认是每1分钟一次。
+  evaluation_interval: 15s # 每15秒评估一次规则。默认是每1分钟一次。
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+# 报警(触发器)配置
+rule_files:
+  - "alert.rules.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          instance: 本地服务
+
+  # 远程服务器上的 Node Exporter
+  - job_name: 'node_exporter_remote'
+    static_configs:
+      - targets: ['192.168.1.2:8100']
+        labels:
+          instance: 本地服务-2
+      - targets: ['192.168.1.3:8100']
+        labels:
+          instance: 本地服务-3
+
+  #指定监控任务alertmanager
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets:
+        - 'alertmanager:9093'
