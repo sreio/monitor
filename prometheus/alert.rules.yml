@@ -74,3 +74,43 @@ groups:
         annotations:
           summary: "{{$labels.mountpoint}} 磁盘分区使用率过高，请尽快处理！"
           description: "{{$labels.instance}} 磁盘分区使用大于90%，当前使用率{{ $value }}%."
+
+      # Nginx 请求处理时间过高
+      - alert: Nginx请求处理时间过高
+        expr: avg(nginx_http_request_duration_seconds_sum) by (instance) / avg(nginx_http_requests_total) by (instance) > 1
+        for: 5m
+        labels:
+          severity: 严重告警
+        annotations:
+          summary: "{{$labels.instance}} Nginx请求处理时间过高，请尽快处理！"
+          description: "{{$labels.instance}} 的 Nginx 请求处理时间超过1秒，请检查 Nginx 配置或负载情况。"
+
+      # Nginx 5xx 错误率过高
+      - alert: Nginx 5xx 错误率过高
+        expr: rate(nginx_http_requests_total{status=~"5.."}[5m]) / rate(nginx_http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: 严重告警
+        annotations:
+          summary: "{{$labels.instance}} Nginx 5xx 错误率过高，请尽快处理！"
+          description: "{{$labels.instance}} 的 Nginx 5xx 错误率超过5%。"
+
+      # Nginx 活动连接数过多
+      - alert: Nginx活动连接数过多
+        expr: nginx_nginx_connections_active > 1000
+        for: 5m
+        labels:
+          severity: 严重告警
+        annotations:
+          summary: "{{$labels.instance}} Nginx 活动连接数过多，请尽快处理！"
+          description: "{{$labels.instance}} 的 Nginx 活动连接数超过1000，请检查 Nginx 配置或负载情况。"
+
+      # Nginx 请求数过多
+      - alert: Nginx请求数过多
+        expr: rate(nginx_http_requests_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: 严重告警
+        annotations:
+          summary: "{{$labels.instance}} Nginx 请求数过多，请尽快处理！"
+          description: "{{$labels.instance}} 在过去5分钟内的请求数超过1000，请检查流量或服务器负载。"
