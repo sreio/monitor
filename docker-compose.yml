@@ -8,8 +8,8 @@ services:
     volumes:
       - ./prometheus/:/etc/prometheus/    # 配置文件映射
       - prometheus_data:/prometheus
-    ports:
-      - "8090:9090"  # Prometheus 默认端口
+#    ports:
+#      - "8090:9090"  # Prometheus 默认端口
     environment:
       - TZ=${TZ}  # 设置时区
     command:
@@ -45,8 +45,8 @@ services:
   alertmanager:
     image: prom/alertmanager:latest
     container_name: alertmanager
-    ports:
-      - "8093:9093"  # Alertmanager Web UI 默认端口
+#    ports:
+#      - "8093:9093"  # Alertmanager Web UI 默认端口
     volumes:
       - ./alertmanager/:/etc/alertmanager/
     environment:
@@ -89,6 +89,20 @@ services:
       - monitoring
     depends_on:
       - prometheus  # Grafana依赖Prometheus
+
+  # Nginx Exporter 服务
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx-exporter
+    ports:
+      - "9113:9113"  # Nginx Exporter 默认端口
+    environment:
+      - TZ=${TZ}  # 设置时区
+    command:
+      - '--nginx.scrape-uri=http://172.17.0.1/nginx_status'  # 配置Nginx status页面
+    restart: unless-stopped
+    networks:
+      - monitoring
 
 networks:
   monitoring:
