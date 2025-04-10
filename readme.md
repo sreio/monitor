@@ -16,6 +16,11 @@
 - `github`: https://github.com/prometheus/mysqld_exporter
 - `grafana`:https://grafana.com/grafana/dashboards/17320-1-mysqld-exporter-dashboard/
 
+## 查看系统版本
+```bash
+lsb_release -a
+```
+
 ## 依赖
 
 > 需要安装 docker 和 docker-compose
@@ -28,8 +33,11 @@ docker-compose down
 # 从节点启动 Node Exporter
 docker-compose up -d node-exporter nginx-exporter
 
-# 重载prometheus
+# 重载prometheus (需要映射端口)
 curl -X POST http://localhost:8090/-/reload
+
+# 重载prometheus(共享prometheus网络实现)
+docker run --rm --network container:prometheus curlimages/curl -X POST http://localhost:9090/-/reload
 ```
 
 
