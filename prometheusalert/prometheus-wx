@@ -1,0 +1,13 @@
+{{ $var := .externalURL}}{{ range $k,$v:=.alerts }}{{if eq $v.status "resolved"}}[PROMETHEUS-恢复信息]({{$v.generatorURL}})
+> **[{{$v.annotations.summary}}]({{$var}})**
+> <font color="info">告警级别:</font> {{$v.labels.severity}}
+> <font color="info">开始时间:</font> {{$v.startsAt}}
+> <font color="info">结束时间:</font> {{$v.endsAt}}
+> <font color="info">故障主机IP:</font> {{$v.labels.instance}}
+> <font color="info">**{{$v.annotations.description}}**</font>{{else}}[PROMETHEUS-告警信息]({{$v.generatorURL}})
+> **[{{$v.annotations.summary}}]({{$var}})**
+> <font color="warning">告警级别:</font> {{$v.labels.severity}}
+> <font color="warning">开始时间:</font> {{$v.startsAt}}
+> <font color="warning">故障主机IP:</font> {{$v.labels.instance}}
+> <font color="warning">**{{$v.annotations.description}}**</font>{{end}}{{ end }}
+{{ $urimsg:=""}}{{ range $key,$value:=.commonLabels }}{{$urimsg =  print $urimsg $key "%3D%22" $value "%22%2C" }}{{end}}
